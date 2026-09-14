@@ -6,7 +6,7 @@
   "configurations": [
     {
       "name": "Debug 2048 in Chrome",
-      "type": "pwa-chrome",
+      "type": "chrome",
       "request": "launch",
       "url": "http://127.0.0.1:8080/index.html",
       "webRoot": "${workspaceFolder}"
