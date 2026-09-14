@@ -60,6 +60,18 @@
 		.cell[data-value="512"] { color: #f9f6f2; background: #edc850; font-size: clamp(1.45rem, 6vw, 2.6rem); }
 		.cell[data-value="1024"], .cell[data-value="2048"] { color: #f9f6f2; background: #edc53f; font-size: clamp(1.15rem, 5vw, 2.2rem); }
 		.cell[data-value="2048"] { box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.2) inset; }
+		.cell.tile-merged { position: relative; z-index: 1; animation: tile-merge 320ms ease-out; }
+		.cell.tile-new { position: relative; z-index: 1; animation: tile-spawn 320ms ease-out; }
+		@keyframes tile-merge {
+			0% { transform: scale(0.78); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.85); }
+			55% { transform: scale(1.16); box-shadow: 0 0 0 7px rgba(255, 255, 255, 0.42); }
+			100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+		}
+		@keyframes tile-spawn {
+			0% { transform: scale(0); opacity: 0.35; }
+			65% { transform: scale(1.12); opacity: 1; }
+			100% { transform: scale(1); opacity: 1; }
+		}
 		.statusline { justify-content: space-between; gap: 10px; margin: 18px 2px 0; }
 		.statusline p { margin: 0; font-size: 0.9rem; }
 		.undo { padding: 9px 13px; color: var(--ink); background: #eee4da; }

@@ -34,9 +34,10 @@ function getEmptyCells() {
 
 function addRandomTile() {
   const emptyCells = getEmptyCells();
-  if (!emptyCells.length) return;
+  if (!emptyCells.length) return null;
   const cell = emptyCells[Math.floor(Math.random() * emptyCells.length)];
   board[cell.row][cell.column] = Math.random() < 0.9 ? 2 : 4;
+  return cell;
 }
 
 function startGame() {
@@ -51,11 +52,16 @@ function startGame() {
   render();
 }
 
-function render() {
+function render(effects = {}) {
+  const mergedCells = new Set((effects.mergedPositions || []).map(({ row, column }) => `${row}-${column}`));
+  const spawnedCell = effects.spawnedPosition ? `${effects.spawnedPosition.row}-${effects.spawnedPosition.column}` : null;
   gridElement.replaceChildren();
-  board.flat().forEach((value) => {
+  board.flat().forEach((value, index) => {
+    const positionKey = `${Math.floor(index / SIZE)}-${index % SIZE}`;
     const cell = document.createElement("div");
     cell.className = "cell";
+    if (mergedCells.has(positionKey)) cell.classList.add("tile-merged");
+    if (spawnedCell === positionKey) cell.classList.add("tile-new");
     cell.dataset.value = value;
     cell.textContent = value || "";
     cell.setAttribute("aria-label", value ? `Tile ${value}` : "Empty cell");
@@ -85,11 +91,13 @@ function restore(state) {
 function slideRow(row) {
   const compacted = row.filter(Boolean);
   const merged = [];
+  const mergedIndices = [];
   let gained = 0;
   for (let index = 0; index < compacted.length; index += 1) {
     if (compacted[index] === compacted[index + 1]) {
       const value = compacted[index] * 2;
       merged.push(value);
+      mergedIndices.push(merged.length - 1);
       gained += value;
       index += 1;
     } else {
@@ -97,13 +105,14 @@ function slideRow(row) {
     }
   }
   while (merged.length < SIZE) merged.push(0);
-  return { row: merged, gained };
+  return { row: merged, gained, mergedIndices };
 }
 
 function move(direction) {
   if (gameOver || (gameWon && direction === "blocked")) return;
   const before = JSON.stringify(board);
   let gained = 0;
+  const mergedPositions = [];
   const nextBoard = createEmptyBoard();
 
   for (let index = 0; index < SIZE; index += 1) {
@@ -116,6 +125,7 @@ function move(direction) {
       const position = direction === "left" || direction === "right" ? { row: index, column: lineIndex } : { row: lineIndex, column: index };
       if (direction === "right" || direction === "down") position[direction === "right" ? "column" : "row"] = SIZE - 1 - lineIndex;
       nextBoard[position.row][position.column] = value;
+      if (result.mergedIndices.includes(lineIndex)) mergedPositions.push(position);
     });
     gained += result.gained;
   }
@@ -128,8 +138,8 @@ function move(direction) {
     best = score;
     localStorage.setItem(STORAGE_KEY, best);
   }
-  addRandomTile();
-  render();
+  const spawnedPosition = addRandomTile();
+  render({ mergedPositions, spawnedPosition });
   if (!gameWon && board.flat().includes(2048)) showWin();
   if (!canMove() && !gameWon) showGameOver();
   else updateStatus(gained ? `Great merge! +${gained}` : "Keep going!");
