@@ -1,1 +1,126 @@
-welcome
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="theme-color" content="#faf8ef">
+	<title>2048</title>
+	<style>
+		:root {
+			--ink: #776e65;
+			--muted: #8f867c;
+			--cream: #faf8ef;
+			--board: #bbada0;
+			--empty: rgba(238, 228, 218, 0.35);
+			--accent: #edc53f;
+			--panel: rgba(255, 255, 255, 0.72);
+			--shadow: 0 18px 45px rgba(119, 110, 101, 0.16);
+		}
+
+		* { box-sizing: border-box; }
+
+		body {
+			margin: 0;
+			min-width: 320px;
+			color: var(--ink);
+			background:
+				radial-gradient(circle at 8% 8%, rgba(237, 197, 63, 0.17), transparent 27rem),
+				radial-gradient(circle at 94% 90%, rgba(245, 149, 99, 0.13), transparent 25rem),
+				var(--cream);
+			font-family: "Avenir Next", Avenir, "Trebuchet MS", sans-serif;
+		}
+
+		main { width: min(100% - 32px, 560px); margin: 0 auto; padding: 50px 0 34px; }
+
+		.topline, .intro, .actions, .statusline { display: flex; align-items: center; }
+		.topline { justify-content: space-between; gap: 16px; }
+		h1 { margin: 0; color: #5f574f; font-size: clamp(4.4rem, 17vw, 6.5rem); line-height: 0.8; letter-spacing: -0.08em; }
+		.scores { display: flex; gap: 8px; }
+		.score-box { min-width: 82px; padding: 9px 14px 8px; color: #fff; background: var(--board); border-radius: 8px; text-align: center; box-shadow: 0 7px 16px rgba(119, 110, 101, 0.12); }
+		.score-box small { display: block; color: #eee4da; font-size: 0.68rem; font-weight: 800; letter-spacing: 0.11em; text-transform: uppercase; }
+		.score-box strong { display: block; margin-top: 2px; font-size: 1.45rem; line-height: 1; }
+		.intro { justify-content: space-between; gap: 20px; margin: 26px 0 18px; }
+		.intro p { max-width: 280px; margin: 0; font-size: 0.98rem; line-height: 1.45; }
+		.intro strong { color: #5f574f; }
+		button { border: 0; color: #fff; background: #8f7a66; border-radius: 8px; cursor: pointer; font: inherit; font-weight: 800; transition: transform 140ms ease, background 140ms ease; }
+		button:hover { background: #776452; transform: translateY(-2px); }
+		button:focus-visible { outline: 3px solid rgba(237, 197, 63, 0.75); outline-offset: 3px; }
+		.new-game { padding: 13px 17px; white-space: nowrap; }
+		.board-wrap { position: relative; padding: 12px; background: var(--board); border-radius: 13px; box-shadow: var(--shadow); touch-action: none; }
+		.grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+		.cell { display: grid; aspect-ratio: 1; place-items: center; color: transparent; background: var(--empty); border-radius: 8px; font-size: clamp(1.7rem, 8vw, 3.2rem); font-weight: 900; line-height: 1; -webkit-user-select: none; user-select: none; }
+		.cell[data-value="2"] { color: var(--ink); background: #eee4da; }
+		.cell[data-value="4"] { color: var(--ink); background: #ede0c8; }
+		.cell[data-value="8"] { color: #f9f6f2; background: #f2b179; }
+		.cell[data-value="16"] { color: #f9f6f2; background: #f59563; }
+		.cell[data-value="32"] { color: #f9f6f2; background: #f67c5f; }
+		.cell[data-value="64"] { color: #f9f6f2; background: #f65e3b; }
+		.cell[data-value="128"] { color: #f9f6f2; background: #edcf72; font-size: clamp(1.45rem, 6vw, 2.6rem); }
+		.cell[data-value="256"] { color: #f9f6f2; background: #edcc61; font-size: clamp(1.45rem, 6vw, 2.6rem); }
+		.cell[data-value="512"] { color: #f9f6f2; background: #edc850; font-size: clamp(1.45rem, 6vw, 2.6rem); }
+		.cell[data-value="1024"], .cell[data-value="2048"] { color: #f9f6f2; background: #edc53f; font-size: clamp(1.15rem, 5vw, 2.2rem); }
+		.cell[data-value="2048"] { box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.2) inset; }
+		.statusline { justify-content: space-between; gap: 10px; margin: 18px 2px 0; }
+		.statusline p { margin: 0; font-size: 0.9rem; }
+		.undo { padding: 9px 13px; color: var(--ink); background: #eee4da; }
+		.undo:hover { color: #fff; background: #8f7a66; }
+		.help { margin: 28px 2px 0; padding-top: 18px; border-top: 1px solid rgba(119, 110, 101, 0.18); color: var(--muted); font-size: 0.84rem; line-height: 1.55; }
+		.overlay { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; background: rgba(250, 248, 239, 0.78); border-radius: 13px; text-align: center; }
+		.overlay[hidden] { display: none; }
+		.overlay-card { padding: 22px; }
+		.overlay h2 { margin: 0 0 8px; color: #5f574f; font-size: 2.2rem; }
+		.overlay p { margin: 0 0 18px; }
+		.overlay-actions { display: flex; justify-content: center; gap: 9px; }
+		.overlay-actions button { padding: 12px 16px; }
+		.overlay-actions .secondary { color: var(--ink); background: #eee4da; }
+
+		@media (max-width: 480px) {
+			main { width: min(100% - 22px, 420px); padding-top: 32px; }
+			.intro { align-items: flex-end; }
+			.intro p { font-size: 0.88rem; }
+			.scores { gap: 5px; }
+			.score-box { min-width: 69px; padding-inline: 8px; }
+			.score-box strong { font-size: 1.2rem; }
+			.board-wrap { padding: 9px; }
+			.grid { gap: 9px; }
+		}
+	</style>
+</head>
+<body>
+	<main>
+		<header class="topline">
+			<h1>2048</h1>
+			<div class="scores" aria-label="Game scores">
+				<div class="score-box"><small>Score</small><strong id="score">0</strong></div>
+				<div class="score-box"><small>Best</small><strong id="best">0</strong></div>
+			</div>
+		</header>
+
+		<section class="intro">
+			<p>Join the numbers and get to the <strong>2048 tile!</strong></p>
+			<button class="new-game" id="new-game" type="button">New game</button>
+		</section>
+
+		<section class="board-wrap" id="board" aria-label="2048 game board" role="application">
+			<div class="grid" id="grid"></div>
+			<div class="overlay" id="overlay" hidden>
+				<div class="overlay-card">
+					<h2 id="overlay-title">Game over!</h2>
+					<p id="overlay-message">No more moves.</p>
+					<div class="overlay-actions">
+						<button id="try-again" type="button">Try again</button>
+						<button class="secondary" id="keep-playing" type="button">Keep playing</button>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<div class="statusline">
+			<p id="status" aria-live="polite">Your move.</p>
+			<button class="undo" id="undo" type="button">Undo</button>
+		</div>
+		<p class="help"><strong>How to play:</strong> Use your arrow keys or swipe to move the tiles. When two tiles with the same number touch, they merge into one.</p>
+	</main>
+	<script src="script.js"></script>
+</body>
+</html>
