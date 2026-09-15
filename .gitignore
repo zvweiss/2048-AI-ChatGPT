@@ -1,0 +1,23 @@
+# macOS metadata
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Node.js dependencies and logs
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# Temporary editor and build output
+dist/
+build/
+coverage/
+*.tmp
+*.temp
