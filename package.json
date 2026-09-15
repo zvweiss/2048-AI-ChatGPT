@@ -4,7 +4,7 @@
   "private": true,
   "description": "A playable 2048 game built with HTML, CSS, and JavaScript.",
   "scripts": {
-    "dev": "npx --yes serve .",
+    "dev": "npx --yes serve . --listen 8080",
     "check": "node --check script.js"
   }
 }
